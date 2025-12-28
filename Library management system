@@ -1,0 +1,196 @@
+/*
+ * Simple Library Management System
+ * Designed for First Semester Engineering Students
+ * Topics used: Variables, Arrays, Structures, Loops, Switch Case, Functions, Pointers.
+ */
+
+#include <stdio.h>
+#include <string.h>
+
+// 1. Define what a "Book" looks like using a Structure
+struct Book {
+    int id;                // The unique number for the book
+    char title[100];       // Name of the book
+    char author[100];      // Writer of the book
+    int isAvailable;       // 1 means Available, 0 means Borrowed
+};
+
+// Global variables
+struct Book library[100];
+int totalBooks = 0;
+
+// --- Function Declarations ---
+void addBook();
+void viewBooks();
+void borrowBook();
+void returnBook();
+void clearInputBuffer(); // NEW: A helper to clean up messy inputs
+
+int main() {
+    int choice;
+
+    printf("Welcome to the Student Library System!\n");
+
+    while(1) {
+        printf("\n============================\n");
+        printf("       MAIN MENU\n");
+        printf("============================\n");
+        printf("1. Add a New Book\n");
+        printf("2. View All Books\n");
+        printf("3. Borrow a Book\n");
+        printf("4. Return a Book\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        
+        // Robust Input Handling:
+        // If scanf fails to read a number (e.g., user types 'a'), 
+        // we clear the error and the buffer.
+        if (scanf("%d", &choice) != 1) {
+            printf("\nInvalid input! Please enter a number.\n");
+            clearInputBuffer(); // Clear the bad input from memory
+            continue; // Skip the rest and show menu again
+        }
+
+        // Clear the "Enter" key press from the buffer so it doesn't skip the next input
+        clearInputBuffer();
+
+        switch(choice) {
+            case 1:
+                addBook();
+                break;
+            case 2:
+                viewBooks();
+                break;
+            case 3:
+                borrowBook();
+                break;
+            case 4:
+                returnBook();
+                break;
+            case 5:
+                printf("Exiting... Keep reading!\n");
+                return 0;
+            default:
+                printf("Invalid choice! Please try again.\n");
+        }
+    }
+    return 0;
+}
+
+// --- Function Definitions ---
+
+// NEW: This simple function reads characters until it finds the Enter key (\n)
+// It effectively "cleans" the input memory.
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF); 
+}
+
+void addBook() {
+    if (totalBooks >= 100) {
+        printf("Sorry, the library is full!\n");
+        return;
+    }
+
+    struct Book *newBook = &library[totalBooks]; 
+    newBook->id = totalBooks + 1; 
+    
+    printf("Enter Book Title: ");
+    // Now we can use simple gets logic or scanset because buffer is clean
+    scanf("%[^\n]", newBook->title);
+    clearInputBuffer(); // Clean up after reading string
+    
+    printf("Enter Author Name: ");
+    scanf("%[^\n]", newBook->author);
+    clearInputBuffer(); // Clean up after reading string
+    
+    newBook->isAvailable = 1; 
+    
+    totalBooks++; 
+    printf("Book added successfully! Book ID is: %d\n", newBook->id);
+}
+
+void viewBooks() {
+    if (totalBooks == 0) {
+        printf("Library is empty. Add some books first!\n");
+        return;
+    }
+
+    printf("\n--- List of Books ---\n");
+    printf("ID\tStatus\t\tTitle\n");
+    printf("--------------------------------------\n");
+
+    struct Book *ptr;
+
+    for (int i = 0; i < totalBooks; i++) {
+        ptr = &library[i];
+
+        printf("%d\t", ptr->id);
+        
+        if (ptr->isAvailable == 1) {
+            printf("Available\t");
+        } else {
+            printf("Borrowed \t");
+        }
+        
+        printf("%s (by %s)\n", ptr->title, ptr->author);
+    }
+}
+
+void borrowBook() {
+    int id, found = 0;
+    struct Book *ptr;
+    
+    printf("Enter the Book ID to borrow: ");
+    scanf("%d", &id);
+    clearInputBuffer(); // Clean up
+
+    for (int i = 0; i < totalBooks; i++) {
+        ptr = &library[i]; 
+
+        if (ptr->id == id) {
+            found = 1; 
+            
+            if (ptr->isAvailable == 1) {
+                ptr->isAvailable = 0; 
+                printf("You have successfully borrowed '%s'!\n", ptr->title);
+            } else {
+                printf("Sorry, this book is already borrowed by someone else.\n");
+            }
+            break; 
+        }
+    }
+    
+    if (found == 0) {
+        printf("Book ID not found!\n");
+    }
+}
+
+void returnBook() {
+    int id, found = 0;
+    struct Book *ptr; 
+    
+    printf("Enter the Book ID to return: ");
+    scanf("%d", &id);
+    clearInputBuffer(); // Clean up
+
+    for (int i = 0; i < totalBooks; i++) {
+        ptr = &library[i]; 
+
+        if (ptr->id == id) {
+            found = 1;
+            
+            if (ptr->isAvailable == 0) {
+                ptr->isAvailable = 1; 
+                printf("Thank you for returning '%s'!\n", ptr->title);
+            } else {
+                printf("Error: This book was not borrowed.\n");
+            }
+            break;
+        }
+    }
+    
+    if (found == 0) {
+        printf("Book ID not found!\n");
+    }
+}
